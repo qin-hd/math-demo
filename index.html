@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>第二章 实数：考题1 侦探破案版（动画稳定修复版）</title>
+    <style>
+        :root {
+            --primary: #6c5ce7;    /* 侦探紫 */
+            --accent: #fdcb6e;     /* 线索黄 */
+            --danger: #e17055;     /* 警示红 */
+            --success: #00b894;    /* 成功绿 */
+            --text: #2d3436;       /* 深灰字 */
+            --bg: #f9f9fb;         /* 背景色 */
+        }
+
+        body {
+            font-family: "Microsoft YaHei", "Segoe UI", sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 40px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(108, 92, 231, 0.1);
+            overflow: hidden;
+            border: 1px solid #eee;
+        }
+
+        /* 头部 */
+        .header {
+            background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+            color: #fff;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+        .header h1 { margin: 0; font-size: 1.8rem; letter-spacing: 1px; }
+        .header p { opacity: 0.9; margin-top: 5px; font-weight: 300; }
+        
+        .content { padding: 40px; }
+
+        /* 题目展示区 */
+        .problem-card {
+            background: #f1f2f6;
+            border-left: 6px solid var(--primary);
+            padding: 20px;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            margin-bottom: 40px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            line-height: 1.8;
+        }
+
+        /* --- 核心板块：侦探破案板 (提取信息) --- */
+        .detective-section {
+            margin-bottom: 50px;
+        }
+        .section-title {
+            font-size: 1.4rem; color: var(--primary); font-weight: bold; margin-bottom: 20px;
+            display: flex; align-items: center;
+        }
+        .section-title::before { content: '🔍'; margin-right: 10px; font-size: 1.6rem; }
+
+        .clue-board {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+        }
+
+        /* 线索卡片 */
+        .clue-card {
+            background: #fff;
+            border: 2px dashed #b2bec3;
+            border-radius: 12px;
+            padding: 15px;
+            position: relative;
+            transition: 0.3s;
+        }
+        .clue-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+            box-shadow: 0 8px 15px rgba(108, 92, 231, 0.15);
+        }
+        .clue-icon {
+            position: absolute; top: -15px; left: 15px;
+            background: var(--accent); color: #fff;
+            width: 30px; height: 30px; border-radius: 50%;
+            text-align: center; line-height: 30px; font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .raw-text { color: #636e72; font-size: 0.95rem; margin-top: 10px; font-style: italic; font-family: "KaiTi", serif; }
+        .arrow-down { text-align: center; color: var(--primary); font-size: 1.2rem; margin: 5px 0; }
+        .decoded-info { 
+            color: #2d3436; font-weight: bold; font-size: 1rem; 
+            background: #eef2ff; padding: 8px; border-radius: 6px;
+        }
+        .tool-needed {
+            margin-top: 10px; font-size: 0.85rem; color: #e17055; font-weight: bold; text-align: right;
+        }
+        .tool-needed::before { content: '🔧 工具: '; }
+
+        /* 工具箱详情样式 */
+        .tool-box-detail {
+            margin-top: 30px; 
+            background: #fffbf0; 
+            border: 1px solid #ffeaa7; 
+            border-radius: 12px; 
+            padding: 20px;
+        }
+        .tool-header {
+            font-weight: bold; color: #e58e26; margin-bottom: 15px; font-size: 1.1rem; display: flex; align-items: center;
+        }
+        .tool-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;
+        }
+        .tool-item {
+            background: #fff; padding: 12px; border-radius: 8px; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .tool-name { font-weight: bold; font-size: 0.95rem; margin-bottom: 5px; }
+        .tool-desc { font-size: 0.9rem; color: #555; }
+        .tool-formula { 
+            text-align: center; margin: 8px 0; font-weight: bold; background: #f9f9f9; 
+            padding: 5px; border-radius: 4px;
+        }
+
+        /* --- 动画舞台 --- */
+        .stage-area {
+            background: #fff;
+            border: 3px solid #dfe6e9;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+        .stage-overlay {
+            position: absolute; top: 10px; right: 10px;
+            background: rgba(255,255,255,0.9); padding: 5px 10px;
+            border-radius: 20px; font-size: 0.8rem; color: #555;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        /* 播放控制按钮 */
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+        .btn {
+            background: var(--primary); color: white; border: none;
+            padding: 12px 30px; border-radius: 30px; font-size: 1rem; font-weight: bold;
+            cursor: pointer; box-shadow: 0 5px 15px rgba(108, 92, 231, 0.3);
+            transition: 0.2s; display: inline-flex; align-items: center;
+        }
+        .btn:hover { transform: scale(1.05); background: #5f4dd0; }
+        .btn:active { transform: scale(0.98); }
+        .btn span { margin-right: 8px; font-size: 1.2rem; }
+        
+        .btn-replay { background: #00b894; }
+        .btn-replay:hover { background: #00a383; }
+
+        /* --- 导游步骤 --- */
+        .guide-step {
+            margin-bottom: 20px;
+            display: flex;
+            align-items: flex-start;
+        }
+        .step-num {
+            background: var(--primary); color: #fff;
+            width: 30px; height: 30px; border-radius: 50%;
+            text-align: center; line-height: 30px; font-weight: bold;
+            flex-shrink: 0; margin-right: 15px; margin-top: 3px;
+        }
+        .step-content {
+            background: #f8f9fa; padding: 15px 20px; border-radius: 12px; flex: 1;
+            border-left: 4px solid var(--accent);
+        }
+        .step-title { font-weight: bold; color: var(--primary); margin-bottom: 5px; display: block; }
+
+        /* --- 总结卡片 --- */
+        .summary-card {
+            margin-top: 50px;
+            background: #e8f8f5;
+            border: 2px solid #27ae60;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(39, 174, 96, 0.1);
+        }
+        .summary-header {
+            color: #27ae60; margin-top: 0; display: flex; align-items: center; font-size: 1.3rem; margin-bottom: 20px; font-weight: bold;
+        }
+        .summary-steps {
+            display: flex; justify-content: space-around; align-items: flex-start; flex-wrap: wrap; gap: 15px;
+        }
+        .summary-step {
+            flex: 1; min-width: 150px; text-align: center; background: white; padding: 15px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .summary-icon { font-size: 2rem; margin-bottom: 10px; display: block; }
+
+        /* --- SVG 动画类 (修复版) --- */
+        
+        /* 线条和弧线：描边动画 */
+        .anim-line, .anim-arc, .anim-poly {
+            stroke-dasharray: 400; 
+            stroke-dashoffset: 400; 
+            opacity: 0; 
+        }
+        
+        /* 文本和点：纯透明度渐变 (最稳妥的方式) */
+        .anim-text, .anim-point { 
+            opacity: 0; 
+        }
+
+        /* 播放状态 */
+        .playing .anim-line, .playing .anim-poly { 
+            opacity: 1;
+            transition: stroke-dashoffset 1s ease-out, opacity 0.1s; 
+            stroke-dashoffset: 0; 
+        }
+        .playing .anim-arc {
+            opacity: 1;
+            transition: stroke-dashoffset 1.5s ease-in-out, opacity 0.1s;
+            stroke-dashoffset: 0; 
+        }
+        
+        /* 文本和点的出现动画 */
+        .playing .anim-text, .playing .anim-point { 
+            transition: opacity 0.5s ease-out; 
+            opacity: 1; 
+        }
+
+        /* 🎬 剧本时序控制 */
+        .playing #line-bc { transition-delay: 0.5s; }
+        .playing #mark-right-angle { transition-delay: 1.5s; }
+        .playing #point-c { transition-delay: 2.0s; }
+        .playing #label-c { transition-delay: 2.0s; }
+        .playing #label-bc-len { transition-delay: 2.5s; }
+        .playing #line-ac { transition-delay: 3.0s; }
+        /* .playing #text-root5 { transition-delay: 3.8s; }  */ /* 移除长度标注 */
+        .playing #arc-path { transition-delay: 4.0s; }
+        .playing #point-p { transition-delay: 5.5s; }
+        .playing #label-p { transition-delay: 5.5s; }
+        .playing #text-p-q { transition-delay: 6.0s; }
+
+        /* --- 数学符号与根号样式 --- */
+        .math { 
+            font-family: "Times New Roman", serif; 
+            font-weight: bold; 
+            font-style: italic; 
+        }
+        .math-num {
+            font-family: "Times New Roman", serif;
+            font-weight: bold;
+            font-style: normal;
+        }
+        
+        .sqrt-wrapper {
+            white-space: nowrap;
+        }
+        .radic { 
+            font-size: 1.1em; 
+            vertical-align: middle; 
+            font-family: "Times New Roman", serif;
+            margin-right: -2px; 
+        }
+        .sqrt-content { 
+            border-top: 1.5px solid currentColor; 
+            padding-top: 1px; 
+            padding-left: 1px;
+            padding-right: 1px;
+            display: inline-block; 
+            vertical-align: middle; 
+            font-family: "Times New Roman", serif;
+        }
+        sup { font-size: 0.75em; vertical-align: super; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>🕵️ 几何侦探：寻找失踪的坐标 P</h1>
+        <p>第二章 实数 · 几何意义与数轴</p>
+    </div>
+
+    <div class="content">
+        <!-- 1. 题目 -->
+        <div class="problem-card">
+            <strong>📝 案件描述：</strong><br>
+            如图，在数轴上，点 <span class="math">A</span> 表示 <span class="math-num">-1</span>，点 <span class="math">B</span> 表示 <span class="math-num">0</span>。
+            过点 <span class="math">B</span> 作 <span class="math">BC &perp; AB</span>，且 <span class="math">BC = 2</span>。
+            连接 <span class="math">AC</span>，以 <span class="math">A</span> 为圆心，<span class="math">AC</span> 长为半径画弧，交数轴正半轴于点 <span class="math">P</span>。
+            <br><br>
+            <strong>🎯 任务目标：求点 P 表示的数。</strong>
+        </div>
+
+        <!-- 2. 侦探破案板 (信息提取) -->
+        <div class="detective-section">
+            <div class="section-title">第一阶段：现场勘查与线索解码</div>
+            <p style="color:#666; margin-bottom:20px;">别急着算！先戴上侦探眼镜，把题目里的“几何语言”翻译成“代数工具”。</p>
+            
+            <div class="clue-board">
+                <!-- 线索 1 -->
+                <div class="clue-card">
+                    <div class="clue-icon">1</div>
+                    <div class="raw-text">“A是-1，B是0”</div>
+                    <div class="arrow-down">⬇️ 翻译</div>
+                    <div class="decoded-info">直角三角形的<br>底边长 = 1</div>
+                    <div class="tool-needed">数轴距离</div>
+                </div>
+
+                <!-- 线索 2 -->
+                <div class="clue-card">
+                    <div class="clue-icon">2</div>
+                    <div class="raw-text">“BC⊥AB, BC=2”</div>
+                    <div class="arrow-down">⬇️ 翻译</div>
+                    <div class="decoded-info">直角三角形的<br>高 = 2</div>
+                    <div class="tool-needed">勾股定理</div>
+                </div>
+
+                <!-- 线索 3 -->
+                <div class="clue-card">
+                    <div class="clue-icon">3</div>
+                    <div class="raw-text">“以A为圆心，AC为半径画弧”</div>
+                    <div class="arrow-down">⬇️ 翻译</div>
+                    <div class="decoded-info">斜边AC倒下来<br>变成了底边AP</div>
+                    <!-- 修改：知识点具体化 -->
+                    <div class="tool-needed">圆的性质：<br>同圆半径相等</div>
+                </div>
+            </div>
+
+            <!-- 工具箱知识点补齐 -->
+            <div class="tool-box-detail">
+                <div class="tool-header">🧰 侦探工具包说明书 (知识点详解)</div>
+                <div class="tool-grid">
+                    
+                    <!-- 工具 1 -->
+                    <div class="tool-item" style="border-left: 4px solid #6c5ce7;">
+                        <div class="tool-name" style="color: #6c5ce7;">🔧 工具1：数轴距离公式</div>
+                        <div class="tool-desc">
+                            数轴上两点 <span class="math">A(a)</span>, <span class="math">B(b)</span> 之间的距离：
+                            <div class="tool-formula"><span class="math">d = |a - b|</span></div>
+                            本题中 <span class="math">AB = |-1 - 0| = 1</span>
+                        </div>
+                    </div>
+
+                    <!-- 工具 2 -->
+                    <div class="tool-item" style="border-left: 4px solid #e17055;">
+                        <div class="tool-name" style="color: #e17055;">🔧 工具2：勾股定理</div>
+                        <div class="tool-desc">
+                            直角三角形斜边长等于两直角边的平方和的算术平方根。
+                            <div class="tool-formula"><span class="math">c = </span>
+                                <span class="sqrt-wrapper">
+                                    <span class="radic">√</span><span class="sqrt-content"><span class="math">a</span><sup>2</sup> + <span class="math">b</span><sup>2</sup></span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 工具 3 -->
+                    <div class="tool-item" style="border-left: 4px solid #00b894;">
+                        <div class="tool-name" style="color: #00b894;">🔧 工具3：坐标定位法</div>
+                        <div class="tool-desc">
+                            已知起点 <span class="math">A</span> 和距离 <span class="math">d</span>，求终点 <span class="math">P</span>：
+                            <div class="tool-formula"><span class="math">P = A &plusmn; d</span></div>
+                            (向右为加，向左为减)
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. 动态演示 -->
+        <div class="detective-section">
+            <div class="section-title">第二阶段：案情重演 (动画演示)</div>
+            
+            <div class="stage-area" id="stage">
+                <div class="stage-overlay">1单位 = 60px</div>
+                <svg width="100%" height="220" viewBox="0 0 400 220">
+                    <defs>
+                        <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                            <path d="M 0 0 L 10 5 L 0 10 z" fill="#333"/>
+                        </marker>
+                    </defs>
+
+                    <!-- 静态部分：坐标轴与已知点 -->
+                    <line x1="20" y1="180" x2="380" y2="180" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+                    
+                    <line x1="100" y1="180" x2="100" y2="170" stroke="#333" stroke-width="2"/>
+                    <text x="95" y="205" font-weight="bold" fill="#333" font-family="'Times New Roman', serif">-1 (A)</text>
+                    
+                    <line x1="160" y1="180" x2="160" y2="170" stroke="#333" stroke-width="2"/>
+                    <text x="155" y="205" font-weight="bold" fill="#333" font-family="'Times New Roman', serif">0 (B)</text>
+
+                    <!-- 动画1: 画线段 BC -->
+                    <line id="line-bc" class="anim-line" x1="160" y1="180" x2="160" y2="60" stroke="#8e44ad" stroke-width="3"/>
+                    
+                    <!-- 动画2: 标注垂直 -->
+                    <polyline id="mark-right-angle" class="anim-poly" points="150,180 150,170 160,170" fill="none" stroke="#333" stroke-width="1.5"/>
+
+                    <!-- 动画3: 标注C点 (实心圆圈 + 文字) -->
+                    <circle id="point-c" class="anim-point" cx="160" cy="60" r="4" fill="#333"/>
+                    <text id="label-c" class="anim-text" x="155" y="50" font-weight="bold" fill="#333" font-family="'Times New Roman', serif">C</text>
+                    
+                    <!-- 动画4: 标注BC长度 -->
+                    <text id="label-bc-len" class="anim-text" x="170" y="120" fill="#8e44ad" font-weight="bold" font-family="'Times New Roman', serif">2</text>
+
+                    <!-- 动画5: 连接AC -->
+                    <line id="line-ac" class="anim-line" x1="100" y1="180" x2="160" y2="60" stroke="#e74c3c" stroke-width="3"/>
+                    
+                    <!-- 动画6: 画弧交数轴于P -->
+                    <path id="arc-path" class="anim-arc" d="M 160 60 A 134.16 134.16 0 0 1 234.16 180" 
+                          fill="none" stroke="#fdcb6e" stroke-width="2" stroke-dasharray="5,5"/>
+
+                    <!-- 动画7: 标注P点 -->
+                    <circle id="point-p" class="anim-point" cx="234.16" cy="180" r="6" fill="#00b894"/>
+                    <text id="label-p" class="anim-text" x="225" y="210" font-weight="bold" fill="#00b894" font-family="'Times New Roman', serif">P</text>
+
+                    <!-- 动画8: 标注疑问 -->
+                    <text id="text-p-q" class="anim-text" x="225" y="160" font-weight="bold" fill="#e17055" font-size="14">P = ?</text>
+                </svg>
+            </div>
+            
+            <div class="controls">
+                <button class="btn" id="playBtn" onclick="triggerAnimation()">
+                    <span>▶️</span> 开始推演
+                </button>
+            </div>
+        </div>
+
+        <!-- 4. 导游解题 -->
+        <div class="detective-section">
+            <div class="section-title">第三阶段：结案报告 (解题步骤)</div>
+            
+            <div class="guide-step">
+                <div class="step-num">1</div>
+                <div class="step-content">
+                    <span class="step-title">计算斜边（探险棒）的长度</span>
+                    <p>在 Rt<span class="math">&Delta;ABC</span> 中，利用勾股定理：</p>
+                    <p>
+                        <span class="math">AC = </span>
+                        <span class="sqrt-wrapper">
+                            <span class="radic">√</span><span class="sqrt-content"><span class="math-num">1</span><sup>2</sup> + <span class="math-num">2</span><sup>2</sup></span>
+                        </span>
+                        <span class="math"> = </span>
+                        <span class="sqrt-wrapper">
+                            <span class="radic">√</span><span class="sqrt-content"><span class="math-num">5</span></span>
+                        </span>
+                    </p>
+                </div>
+            </div>
+
+            <div class="guide-step">
+                <div class="step-num">2</div>
+                <div class="step-content">
+                    <span class="step-title">确定落点（千万小心！）</span>
+                    <p>我们要从<strong>圆心 A</strong> 开始量距离，而不是从原点 0 开始。</p>
+                    <p><strong>公式：</strong> 终点 = 起点 + 半径 (因为向右画弧)</p>
+                    <p><strong>代入：</strong> <span class="math">P = <span class="math-num">-1</span> + </span>
+                        <span class="sqrt-wrapper">
+                            <span class="radic">√</span><span class="sqrt-content"><span class="math-num">5</span></span>
+                        </span>
+                    </p>
+                    
+                    <div style="margin-top:10px; border-top:1px dashed #ccc; padding-top:10px;">
+                        <span style="color:var(--danger); font-weight:bold;">🚨 易错警示：</span>
+                        很多同学算出 <span class="sqrt-wrapper"><span class="radic">√</span><span class="sqrt-content"><span class="math-num">5</span></span></span> 就直接填了，忘记起点是 -1！
+                    </div>
+                </div>
+            </div>
+            
+            <div style="text-align:center; margin-top:30px;">
+                <span style="background:#00b894; color:white; padding:10px 20px; border-radius:8px; font-weight:bold; font-size:1.2rem;">
+                    ✅ 最终答案： <span class="math">-1 + </span>
+                    <span class="sqrt-wrapper">
+                        <span class="radic">√</span><span class="sqrt-content"><span class="math-num">5</span></span>
+                    </span>
+                </span>
+            </div>
+        </div>
+
+        <!-- 5. 总结 (新增) -->
+        <div class="summary-card">
+            <h3 class="summary-header">
+                <span style="font-size: 1.5rem; margin-right: 10px;">🏆</span> 侦探笔记：解题通关程序
+            </h3>
+            <div class="summary-steps">
+                <div class="summary-step">
+                    <div class="summary-icon">📐</div>
+                    <strong style="color:#2c3e50;">1. 构图</strong><br>
+                    <span style="color: #555; font-size: 0.9rem;">找直角三角形<br>确定直角边</span>
+                </div>
+                <div style="font-size: 1.5rem; color: #ccc; display:flex; align-items:center;">➡</div>
+                <div class="summary-step">
+                    <div class="summary-icon">🧮</div>
+                    <strong style="color:#2c3e50;">2. 算长</strong><br>
+                    <span style="color: #555; font-size: 0.9rem;">用勾股定理<br>算出斜边(半径)</span>
+                </div>
+                <div style="font-size: 1.5rem; color: #ccc; display:flex; align-items:center;">➡</div>
+                <div class="summary-step">
+                    <div class="summary-icon">📍</div>
+                    <strong style="color:#2c3e50;">3. 定位</strong><br>
+                    <span style="color: #555; font-size: 0.9rem;">坐标 = 起点 ± 半径<br>(千万别忘起点!)</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    function triggerAnimation() {
+        const stage = document.getElementById('stage');
+        const btn = document.getElementById('playBtn');
+        
+        // 1. 移除类名（瞬间复位）
+        stage.classList.remove('playing');
+        
+        // 2. 强制浏览器重绘 (Reflow) - 这是关键！
+        void stage.offsetWidth; 
+        
+        // 3. 添加类名（开始播放）
+        stage.classList.add('playing');
+        
+        // 4. 更新按钮状态
+        btn.innerHTML = '<span>↺</span> 重播案情';
+        btn.classList.add('btn-replay');
+    }
+</script>
+
+</body>
+</html>
